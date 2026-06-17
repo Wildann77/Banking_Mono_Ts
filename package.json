@@ -1,0 +1,38 @@
+{
+  "name": "banking-workspace",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "server",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "NODE_OPTIONS=\"--no-deprecation\" concurrently -n \"server,ops,web\" -c \"blue,green,cyan\" \"bun dev:server\" \"bun dev:ops\" \"bun dev:web\"",
+    "dev:server": "bun --cwd server start:dev",
+    "dev:ops": "bun --cwd packages/banking-operations-service start:dev",
+    "dev:web": "bun --cwd apps/web dev",
+    "web": "bun --cwd apps/web dev",
+    "build:server": "bun --cwd server build",
+    "build:ops": "bun --cwd packages/banking-operations-service build",
+    "build:web": "bun --cwd apps/web build",
+    "build:all": "bun build:ops && bun build:server && bun build:web",
+    "test:server": "bun --cwd server test",
+    "test:ops": "bun --cwd packages/banking-operations-service test",
+    "test:web": "bun --cwd apps/web test",
+    "test:e2e:server": "bun --cwd server test:e2e",
+    "test:e2e:ops": "bun --cwd packages/banking-operations-service test:e2e",
+    "lint:web": "bun --cwd apps/web lint",
+    "test:all": "bun test:ops && bun test:server && bun test:web",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "concurrently": "^10.0.3",
+    "dotenv": "^16.4.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
+    "pg": "^8.21.0",
+    "prettier": "^3.4.2",
+    "prisma": "^7.8.0"
+  }
+}
