@@ -1,0 +1,6 @@
+{
+  "apps/web/src/**/*.{ts,tsx}": [
+    "bun --cwd apps/web lint",
+    "prettier --write"
+  ]
+}
