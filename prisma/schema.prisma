@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AccountStatus {
+  active
+  frozen
+  closed
+}
+
+enum TransferStatus {
+  pending
+  completed
+  failed
+  reversed
+}
+
+enum LedgerEntryType {
+  debit
+  credit
+}
+
+model User {
+  id               String           @id @default(uuid()) @db.Uuid
+  email            String           @unique
+  name             String
+  password_hash    String
+  token_version    Int              @default(0)
+  system_user      Boolean          @default(false)
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+
+  accounts         Account[]
+  refresh_sessions RefreshSession[]
+  created_transfers Transfer[]      @relation("TransferCreatedByUser")
+
+  @@index([created_at])
+  @@map("users")
+}
+
+model RefreshSession {
+  id                     String           @id @default(uuid()) @db.Uuid
+  user_id                String           @db.Uuid
+  token_hash             String
+  jti                    String           @unique
+  family_id              String
+  expires_at             DateTime
+  revoked_at             DateTime?
+  replaced_by_session_id String?          @db.Uuid
+  user_agent             String?
+  ip_address             String?
+  created_at             DateTime         @default(now())
+  updated_at             DateTime         @updatedAt
+
+  user                   User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  replaced_by_session    RefreshSession?  @relation("RefreshSessionReplacement", fields: [replaced_by_session_id], references: [id], onDelete: SetNull)
+  replaced_sessions      RefreshSession[] @relation("RefreshSessionReplacement")
+
+  @@index([user_id])
+  @@index([family_id])
+  @@index([expires_at])
+  @@index([user_id, revoked_at])
+  @@map("refresh_sessions")
+}
+
+model Account {
+  id             String         @id @default(uuid()) @db.Uuid
+  owner_id       String         @db.Uuid
+  account_number String         @unique
+  currency       String         @db.VarChar(3)
+  status         AccountStatus
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+
+  owner          User           @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  ledger_entries LedgerEntry[]
+  transfers_out  Transfer[]     @relation("TransferFromAccount")
+  transfers_in   Transfer[]     @relation("TransferToAccount")
+
+  @@index([owner_id])
+  @@index([owner_id, status])
+  @@map("accounts")
+}
+
+model Transfer {
+  id                 String         @id @default(uuid()) @db.Uuid
+  idempotency_key    String         @unique
+  from_account_id    String         @db.Uuid
+  to_account_id      String         @db.Uuid
+  created_by_user_id String         @db.Uuid
+  amount             BigInt         @db.BigInt
+  currency           String         @db.VarChar(3)
+  status             TransferStatus
+  reference          String?
+  failure_reason     String?
+  created_at         DateTime       @default(now())
+  updated_at         DateTime       @updatedAt
+  completed_at       DateTime?
+
+  from_account       Account        @relation("TransferFromAccount", fields: [from_account_id], references: [id], onDelete: Restrict)
+  to_account         Account        @relation("TransferToAccount", fields: [to_account_id], references: [id], onDelete: Restrict)
+  created_by_user    User           @relation("TransferCreatedByUser", fields: [created_by_user_id], references: [id], onDelete: Restrict)
+  ledger_entries     LedgerEntry[]
+
+  @@index([from_account_id])
+  @@index([to_account_id])
+  @@index([from_account_id, created_at])
+  @@index([to_account_id, created_at])
+  @@index([status, created_at])
+  @@map("transfers")
+}
+
+model LedgerEntry {
+  id          String          @id @default(uuid()) @db.Uuid
+  account_id  String          @db.Uuid
+  transfer_id String          @db.Uuid
+  entry_type  LedgerEntryType
+  amount      BigInt          @db.BigInt
+  currency    String          @db.VarChar(3)
+  occurred_at DateTime
+  created_at  DateTime        @default(now())
+
+  account     Account         @relation(fields: [account_id], references: [id], onDelete: Restrict)
+  transfer    Transfer        @relation(fields: [transfer_id], references: [id], onDelete: Restrict)
+
+  @@index([account_id])
+  @@index([transfer_id])
+  @@index([account_id, occurred_at])
+  @@index([account_id, entry_type, occurred_at])
+  @@map("ledger_entries")
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+model OutboxEvent {
+  id             String       @id @default(uuid()) @db.Uuid
+  aggregate_type String
+  aggregate_id   String
+  event_type     String
+  payload        Json
+  status         OutboxStatus @default(PENDING)
+  created_at     DateTime     @default(now())
+  processed_at   DateTime?
+
+  @@index([status, created_at])
+  @@map("outbox_events")
+}
