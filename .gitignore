@@ -75,3 +75,6 @@ test-results/
 # Prisma & Generated Files
 **/generated/prisma/
 
+
+# Temp files
+*.tmp
