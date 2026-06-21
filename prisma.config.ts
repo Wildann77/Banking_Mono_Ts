@@ -12,3 +12,5 @@ export default defineConfig({
     url: process.env["DATABASE_URL"],
   },
 });
+
+// Prisma config for Mono Banking NodeJs
