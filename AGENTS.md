@@ -326,3 +326,6 @@ Standar berikut telah diadopsi dari hasil audit dan wajib dipatuhi:
 12. **DataTable loading/empty slots**: `DataTable` di `components/common/DataTable.tsx` menyediakan `isLoading`, `loadingState`, `emptyState` props untuk konsistensi skeleton/empty state.
 13. **ErrorBoundary per-route**: setiap lazy-loaded route dibungkus `ErrorBoundary` dengan `resetKeys={[location.pathname]}` — lihat `LazyPage` di `routes/index.tsx`.
 
+
+
+<!-- Commit history: Jun 21-25, 2026 -->
