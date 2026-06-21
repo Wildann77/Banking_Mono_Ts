@@ -153,3 +153,5 @@ model OutboxEvent {
   @@index([status, created_at])
   @@map("outbox_events")
 }
+
+// Schema generation: June 2026
