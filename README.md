@@ -127,3 +127,6 @@ bun test:e2e:ops
 2. **Database Schema**:
    - Database schema dipusatkan di `server/prisma/schema.prisma`.
    - Sub-service `banking-operations-service` menarik skema ini saat build/generate melalui script `prisma:generate` lokal.
+
+
+<!-- Development period: June 2026 -->
