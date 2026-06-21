@@ -34,3 +34,5 @@ services:
 volumes:
   postgres_data:
   redis_data:
+
+# Version: 3.8
