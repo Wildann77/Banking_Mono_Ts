@@ -29,3 +29,5 @@ export abstract class Entity<T> {
 }
 
 // Entity base class for DDD domain models
+
+// Abstract Entity base class
